@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Special Klesya</title>
+    <style>
+        :root {
+            --photo-size: 230px;
+            --mobile-photo-size: 180px;
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            height: 100%; width: 100%;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a0a2e, #3a1c71, #4a148c);
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            color: white;
+            touch-action: manipulation; 
+        }
+
+        #bg-canvas {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1; pointer-events: none;
+        }
+
+        .card-shadow {
+            position: absolute; top: 30%; left: 50%;
+            width: var(--photo-size); height: calc(var(--photo-size) * 1.3);
+            background: rgba(255, 255, 255, 0.15);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            border-radius: 20px;
+            z-index: 50;
+            transform: translate(-50%, -50%);
+            animation: cardShuffle 4s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(180, 144, 255, 0.4);
+        }
+
+        @keyframes cardShuffle {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); opacity: 0.6; }
+            25% { transform: translate(-85%, -55%) rotate(-15deg); opacity: 0.3; }
+            50% { transform: translate(-15%, -45%) rotate(15deg); opacity: 0.3; }
+        }
+
+        .photo-frame {
+            position: absolute; top: 30%; left: 50%;
+            transform-origin: center;
+            width: var(--photo-size); height: calc(var(--photo-size) * 1.3);
+            border: 4px solid #fff;
+            box-shadow: 0 0 25px #fff, 0 0 50px #b490ff, inset 0 0 15px #fff;
+            border-radius: 20px; overflow: hidden;
+            z-index: 100;
+            transform: translate(-50%, -50%);
+            animation: jellyFloat 4s ease-in-out infinite;
+        }
+
+        /* --- ANIMASI PUTAR --- */
+        .photo-spin {
+            animation: spinScale 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+        }
+
+        @keyframes spinScale {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) scale(1) rotate(360deg); }
+        }
+
+        .photo-frame img { width: 100%; height: 100%; object-fit: cover; }
+
+        @keyframes jellyFloat {
+            0%, 100% { transform: translate(-50%, -50%) scale(1, 1); }
+            25% { transform: translate(-50%, -52%) scale(1.05, 0.95); }
+            50% { transform: translate(-50%, -48%) scale(0.95, 1.05); }
+            75% { transform: translate(-50%, -51%) scale(1.02, 0.98); }
+        }
+
+        .lyric-viewport {
+            position: absolute;
+            top: 55%; bottom: 100px; width: 100%;
+            overflow: hidden; z-index: 200;
+            -webkit-mask-image: linear-gradient(transparent, black 25%, black 75%, transparent);
+            mask-image: linear-gradient(transparent, black 25%, black 75%, transparent);
+        }
+
+        #lyric-wrapper {
+            position: absolute; width: 100%; top: 40px;
+            transition: transform 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            text-align: center;
+        }
+
+        .lyric-line {
+            padding: 10px 15px; min-height: 50px; font-size: 1.5rem;
+            font-weight: 800; color: rgba(255, 255, 255, 0.2);
+            transition: all 0.4s ease; filter: blur(1px);
+            transform: scale(0.85); text-transform: uppercase;
+        }
+
+        .lyric-line.active {
+            color: #ffffff; filter: blur(0); transform: scale(1.05);
+            text-shadow: 0 0 15px rgba(255,255,255,0.6);
+        }
+
+        .floating-item {
+            position: absolute; width: 100px; opacity: 0; z-index: 2; 
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+            animation: burstAnimation 4s ease-out forwards;
+        }
+
+        @keyframes burstAnimation {
+            0% { transform: scale(0.2) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.8; }
+            100% { transform: scale(1) translateY(-150px) rotate(20deg); opacity: 0; }
+        }
+
+        @media (max-width: 600px) {
+            .photo-frame, .card-shadow {
+                top: 25%;
+                width: var(--mobile-photo-size);
+                height: calc(var(--mobile-photo-size) * 1.3);
+            }
+            .lyric-viewport { top: 48%; }
+            .lyric-line { font-size: 1.2rem; }
+        }
+
+        .controls { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 300; width: 100%; text-align: center; }
+        #btnPlay {
+            display: inline-flex; align-items: center; gap: 10px;
+            border: none; padding: 14px 40px; border-radius: 50px;
+            font-weight: bold; cursor: pointer; color: white; transition: 0.3s;
+        }
+        .btn-playing { background: linear-gradient(45deg, #ff416c, #ff4b2b); }
+        .btn-paused { background: linear-gradient(45deg, #1db954, #191414); }
+
+        .sparkle { 
+            position: fixed; 
+            font-size: 24px; 
+            pointer-events: none; 
+            z-index: 1000; 
+            animation: heartUp 1s forwards; 
+        }
+        @keyframes heartUp { 
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-100px) scale(0); opacity: 0; } 
+        }
+    </style>
+</head>
+<body>
+
+    <div id="bg-canvas"></div>
+    <div class="card-shadow"></div>
+    <div class="card-shadow" style="animation-delay: -2s; border-color: #b490ff; background: rgba(180, 144, 255, 0.1);"></div>
+
+    <div class="photo-frame" id="mainPhotoFrame">
+        <img src="kece.JPG" id="targetPhoto" alt="Faus Photo">
+    </div>
+
+    <div class="lyric-viewport">
+        <div id="lyric-wrapper"></div>
+    </div>
+
+    <div class="controls">
+        <audio id="myAudio" src="TANTE.mp3"></audio>
+        <button id="btnPlay" class="btn-paused" onclick="playMusic()">
+            <span id="btnIcon">▶</span> <span id="btnText">PLAY PARTY</span>
+        </button>
+    </div>
+
+    <script>
+        const audio = document.getElementById('myAudio');
+        const lyricWrapper = document.getElementById('lyric-wrapper');
+        const btnPlay = document.getElementById('btnPlay');
+        const btnIcon = document.getElementById('btnIcon');
+        const btnText = document.getElementById('btnText');
+        const mainPhoto = document.getElementById('targetPhoto');
+        const photoFrame = document.getElementById('mainPhotoFrame');
+
+        let photoChanged = false; 
+
+        const lyricsData = [
+            { time: 0, text: "gaskeuun uyy ✨" },
+            { time: 2, text: "music..." },
+            { time: 4, text: "temanku semua pada jahat tante" },
+            { time: 8, text: "aku lagi susah mereka gak ada" },
+            { time: 12, text: "coba kalo lagi jaya" },
+            { time: 16, text: "aku dipuja puja tante..." },
+            { time: 20, text: "sudah terbiasa terjadi tante" },
+            { time: 24, text: "teman datang ketika lagi butuh saja" },
+            { time: 28, text: "coba kalo lagi susah" },
+            { time: 31, text: "mereka semua menghilang..." },
+            { time: 35, text: "🔥 🔥 🔥" }
+        ];
+
+        lyricsData.forEach((data) => {
+            const line = document.createElement('div');
+            line.className = 'lyric-line';
+            line.innerText = data.text;
+            lyricWrapper.appendChild(line);
+        });
+
+        function playMusic() {
+            if (audio.paused) {
+                audio.currentTime = 0;
+                audio.play();
+                startSpecialEffects();
+                btnPlay.className = 'btn-playing';
+                btnIcon.innerText = "⏸"; btnText.innerText = "STOP & RESET";
+                
+                // Reset foto awal
+                photoChanged = false;
+                mainPhoto.src = "kece.JPG";
+                photoFrame.classList.remove('photo-spin');
+                photoFrame.style.animation = 'jellyFloat 4s ease-in-out infinite';
+            } else {
+                audio.pause();
+                btnPlay.className = 'btn-paused';
+                btnIcon.innerText = "▶"; btnText.innerText = "PLAY PARTY";
+            }
+        }
+
+        function startSpecialEffects() {
+            let timer = setInterval(() => {
+                if (!audio.paused) spawnImage();
+                else clearInterval(timer);
+            }, 400);
+        }
+
+        function spawnImage() {
+            const img = document.createElement('img');
+            img.src = "ti.png";
+            img.className = 'floating-item';
+            img.style.left = Math.random() * 80 + 10 + '%';
+            img.style.top = Math.random() * 80 + 10 + '%';
+            const randomSize = Math.floor(Math.random() * 40) + 60; 
+            img.style.width = randomSize + 'px';
+            document.getElementById('bg-canvas').appendChild(img);
+            setTimeout(() => img.remove(), 4000);
+        }
+
+        audio.addEventListener('timeupdate', () => {
+            let currentIndex = -1;
+            const currentTime = audio.currentTime;
+
+            for (let i = 0; i < lyricsData.length; i++) {
+                if (currentTime >= lyricsData[i].time) currentIndex = i;
+            }
+
+            // --- PERBAIKAN: GANTI FOTO + BALIK JELLY ---
+            if (currentTime >= 20 && !photoChanged) {
+                photoChanged = true;
+                mainPhoto.src = "keren.JPG"; 
+                
+                // Mulai animasi putar
+                photoFrame.classList.add('photo-spin');
+                
+                // Kembalikan animasi jelly setelah 1.2 detik
+                setTimeout(() => {
+                    photoFrame.classList.remove('photo-spin');
+                    // Reset animasi jelly agar segar kembali
+                    photoFrame.style.animation = 'none';
+                    void photoFrame.offsetWidth; 
+                    photoFrame.style.animation = 'jellyFloat 4s ease-in-out infinite';
+                }, 1200);
+            }
+
+            if (currentIndex !== -1) {
+                const lines = document.querySelectorAll('.lyric-line');
+                lines.forEach((line, index) => {
+                    line.classList.toggle('active', index === currentIndex);
+                });
+                const lineHeight = lines[0].offsetHeight || 50;
+                const offset = currentIndex * lineHeight;
+                lyricWrapper.style.transform = `translateY(-${offset}px)`;
+            }
+        });
+
+        function createSparkle(x, y) {
+            const s = document.createElement('div');
+            s.innerHTML = '✨'; 
+            s.className = 'sparkle';
+            s.style.left = (x - 12) + 'px';
+            s.style.top = (y - 12) + 'px';
+            document.body.appendChild(s);
+            setTimeout(() => s.remove(), 900);
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            createSparkle(e.clientX, e.clientY);
+        });
+        
+        window.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            createSparkle(touch.clientX, touch.clientY);
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+            const touch = e.touches[0];
+            createSparkle(touch.clientX, touch.clientY);
+        }, { passive: true });
+
+    </script>
+</body>
+</html>
