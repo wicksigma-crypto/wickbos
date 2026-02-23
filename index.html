@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Special Klesya</title>
+    <title>wickgabut</title>
     <style>
         :root {
             --photo-size: 230px;
@@ -56,17 +56,13 @@
             animation: jellyFloat 4s ease-in-out infinite;
         }
 
-        /* --- ANIMASI PUTAR --- */
-        .photo-spin {
-            animation: spinScale 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+        /* --- TRANSISI FADE HALUS --- */
+        #targetPhoto { 
+            width: 100%; height: 100%; 
+            object-fit: cover;
+            transition: opacity 0.8s ease-in-out; /* Durasi fade */
+            opacity: 1;
         }
-
-        @keyframes spinScale {
-            0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) scale(1) rotate(360deg); }
-        }
-
-        .photo-frame img { width: 100%; height: 100%; object-fit: cover; }
 
         @keyframes jellyFloat {
             0%, 100% { transform: translate(-50%, -50%) scale(1, 1); }
@@ -173,7 +169,6 @@
         const btnIcon = document.getElementById('btnIcon');
         const btnText = document.getElementById('btnText');
         const mainPhoto = document.getElementById('targetPhoto');
-        const photoFrame = document.getElementById('mainPhotoFrame');
 
         let photoChanged = false; 
 
@@ -208,9 +203,8 @@
                 
                 // Reset foto awal
                 photoChanged = false;
+                mainPhoto.style.opacity = 1;
                 mainPhoto.src = "kece.JPG";
-                photoFrame.classList.remove('photo-spin');
-                photoFrame.style.animation = 'jellyFloat 4s ease-in-out infinite';
             } else {
                 audio.pause();
                 btnPlay.className = 'btn-paused';
@@ -245,22 +239,15 @@
                 if (currentTime >= lyricsData[i].time) currentIndex = i;
             }
 
-            // --- PERBAIKAN: GANTI FOTO + BALIK JELLY ---
+            // --- LOGIKA FADE TRANSITION ---
             if (currentTime >= 20 && !photoChanged) {
                 photoChanged = true;
-                mainPhoto.src = "keren.JPG"; 
+                mainPhoto.style.opacity = 0; // Hilangkan dulu
                 
-                // Mulai animasi putar
-                photoFrame.classList.add('photo-spin');
-                
-                // Kembalikan animasi jelly setelah 1.2 detik
                 setTimeout(() => {
-                    photoFrame.classList.remove('photo-spin');
-                    // Reset animasi jelly agar segar kembali
-                    photoFrame.style.animation = 'none';
-                    void photoFrame.offsetWidth; 
-                    photoFrame.style.animation = 'jellyFloat 4s ease-in-out infinite';
-                }, 1200);
+                    mainPhoto.src = "keren.JPG"; // Ganti sumber
+                    mainPhoto.style.opacity = 1; // Munculkan lagi
+                }, 800); // Sinkron dengan durasi CSS transition
             }
 
             if (currentIndex !== -1) {
